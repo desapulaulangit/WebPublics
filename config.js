@@ -13,4 +13,4 @@ const OWNER_PUBKEY='';
 const OWNER_BLOKIR=[];
 
 /* Repository GitHub tempat kota disinkronkan (format: namaakun/namarepo). Penonton mengambil kota dari sini. */
-const SYNC_REPO='raffialbani3108-blip/DesaPulauLangit';
+const SYNC_REPO='desapulaulangit/WebPublics';
