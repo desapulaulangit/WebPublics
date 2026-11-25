@@ -14,3 +14,6 @@ const OWNER_BLOKIR=[];
 
 /* Repository GitHub tempat kota disinkronkan (format: namaakun/namarepo). Penonton mengambil kota dari sini. */
 const SYNC_REPO='desapulaulangit/WebPublics';
+
+
+const PAJAK_DB='';
