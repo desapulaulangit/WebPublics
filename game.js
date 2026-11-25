@@ -16,7 +16,7 @@ const GAJI=1,CARRY=5,GDUR=4,PDUR=10;   // gaji (kas) per siklus kerja • muatan
 const cl=(v,a,b)=>Math.max(a,Math.min(b,v));
 const RK=['kayu','batu','makanan','besi','bahan'],RI={kayu:'🪵',batu:'🪨',makanan:'🌾',besi:'⚙️',bahan:'🧱'};
 /* w,h = ukuran lahan (petak); p = warga minimal; c = biaya */
-const DEF={rumah:{n:'Rumah',c:{kayu:8,bahan:4,kas:10},p:1,w:1,h:1},
+const DEF={rumah:{n:'Rumah',c:{kayu:8,bahan:4,kas:10},p:1,w:2,h:2},
 sumur:{n:'Sumur',c:{batu:6,kas:8},p:3,w:1,h:1},
 ladang:{n:'Ladang',c:{kayu:4,makanan:6,kas:5},p:2,w:2,h:2},
 lumbung:{n:'Lumbung',c:{kayu:12,makanan:8,kas:15},p:4,w:2,h:2},
@@ -26,13 +26,14 @@ kincir:{n:'Kincir Angin',c:{kayu:20,bahan:8,kas:30},p:8,w:1,h:1},
 puskesmas:{n:'Puskesmas',c:{kayu:20,batu:15,bahan:10,kas:40},p:10,w:2,h:2},
 menara:{n:'Menara Jaga',c:{batu:25,besi:8,kas:50},p:12,w:1,h:1},
 sekolah:{n:'Sekolah',c:{kayu:25,batu:10,bahan:15,kas:50},p:14,w:2,h:2},
-kastil:{n:'Kastil Raja',c:{batu:60,besi:30,bahan:30,kas:200},p:40,w:3,h:3}};
-const SC={ladang:2,lumbung:2,pasar:2,taman:2,puskesmas:2,sekolah:2,kastil:1.3},BT={kastil:8};
+kastil:{n:'Kastil Raja',c:{batu:60,besi:30,bahan:30,kas:200},p:40,w:3,h:3},
+balaikota:{n:'Balai Kota',c:{kayu:20,batu:20,bahan:15,kas:30},p:5,w:2,h:2}};
+const SC={ladang:2,lumbung:2,pasar:2,taman:2,puskesmas:2,sekolah:2,kastil:1.3,balaikota:2,rumah:2},BT={kastil:8};
 const PROG=['ladang','sumur','lumbung','pasar','kincir','ladang','puskesmas','taman','sekolah','menara','ladang','pasar','kincir','menara','kastil'];
 const LOOP=['rumah','ladang','pasar','taman','menara','kincir','lumbung','puskesmas','sekolah','sumur'];
 const CAP={rumah:p=>Math.ceil(p/2)+2,ladang:p=>2+(p/3|0),lumbung:p=>1+(p/10|0),pasar:p=>1+(p/12|0),taman:p=>1+(p/15|0),kincir:p=>1+(p/12|0),puskesmas:p=>1+(p/30|0),menara:p=>2+(p/10|0),sekolah:p=>1+(p/40|0),sumur:p=>1+(p/8|0),kastil:()=>1};
 const KEY={rumah:'rumah',kebun:'ladang',ladang:'ladang',sawah:'ladang',lumbung:'lumbung',pasar:'pasar',kincir:'kincir',menara:'menara',kastil:'kastil',istana:'kastil',
-puskesmas:'puskesmas',klinik:'puskesmas',sehat:'puskesmas',rs:'puskesmas',sekolah:'sekolah',taman:'taman',sumur:'sumur',air:'sumur'};
+puskesmas:'puskesmas',klinik:'puskesmas',sehat:'puskesmas',rs:'puskesmas',sekolah:'sekolah',taman:'taman',sumur:'sumur',air:'sumur',balai:'balaikota',balaikota:'balaikota'};
 const STG=[['🏕️ PEMUKIMAN',10,'DESA'],['🏘️ DESA',30,'KOTA'],['🏙️ KOTA',70,'KERAJAAN'],['👑 KERAJAAN',0,'']];
 const ACT={ladang:'farm',pasar:'shop',puskesmas:'visit',sekolah:'visit',taman:'rest',sumur:'look',lumbung:'look'};
 const SPD=1.7;
@@ -283,7 +284,8 @@ function goTo(v,gx,gy){const p=v.g.position,sx=cl(cellOf(p.x),0,N-1),sy=cl(cellO
 function perim(b,from){let best=null,bd=1e9;for(let i=-1;i<=b.w;i++)for(let j=-1;j<=b.h;j++){if((i<0||i>=b.w)&&(j<0||j>=b.h))continue;if(i>=0&&i<b.w&&j>=0&&j<b.h)continue;const a=b.x+i,c=b.y+j;if(a<0||c<0||a>=N||c>=N||blk[a][c])continue;const d=Math.hypot(a-from[0],c-from[1])+Math.random()*3;if(d<bd){bd=d;best=[a,c]}}return best}
 function faceB(v,b){if(!b)return;v.g.rotation.y=Math.atan2(b.g.position.x-v.g.position.x,b.g.position.z-v.g.position.z)}
 function dest(v){const p=v.g.position,c=[cl(cellOf(p.x),0,N-1),cl(cellOf(p.z),0,N-1)],done=S.bs.filter(b=>b.st=='done');let act=null,ok=false;v.face=null;
-const hsn=done.filter(b=>b.t=='rumah');if(!v.bani&&hsn.length&&Math.random()<(tm>.52?.55:.1)){const b=hsn[Math.random()*hsn.length|0],q=perim(b,c);if(q&&goTo(v,q[0],q[1])){ok=true;act='enter';v.face=b}}
+if(v.bani){const bk=done.find(b=>b.t=='balaikota');if(bk&&Math.random()<.6){const q=perim(bk,c);if(q&&goTo(v,q[0],q[1])){ok=true;act='look';v.face=bk}}}
+const hsn=done.filter(b=>b.t=='rumah');if(!ok&&!v.bani&&hsn.length&&Math.random()<(tm>.52?.55:.1)){const b=hsn[Math.random()*hsn.length|0],q=perim(b,c);if(q&&goTo(v,q[0],q[1])){ok=true;act='enter';v.face=b}}
 if(!ok&&done.length&&Math.random()<(v.bani?.6:.5)){const b=done[Math.random()*done.length|0],q=perim(b,c);if(q&&goTo(v,q[0],q[1])){ok=true;act=ACT[b.t]||'look';v.face=b}}
 for(let i=0;i<12&&!ok;i++){const R2=v.bani?9:14,ox=v.bani?CX:c[0],oy=v.bani?CX:c[1],x=cl(Math.round(ox+(Math.random()*2-1)*R2),0,N-1),y=cl(Math.round(oy+(Math.random()*2-1)*R2),0,N-1);if(!blk[x][y])ok=goTo(v,x,y)}
 v.act=ok?act:null;v.wait=2+Math.random()*5}
@@ -293,7 +295,8 @@ function finish(b){b.st='done';b.g.scale.set(b.sc,b.sc,b.sc);if(b.mk){dyn.remove
 function unstuck(v,x,y){const q=nearestFree(x,y);v.g.position.x=wx(q[0]);v.g.position.z=wx(q[1])}
 /* ---------- pekerjaan warga: tiap siklus kerja digaji 1 kas • warga mencari sumber daya sendiri ---------- */
 const JOBS={penebang:{n:'Penebang Kayu',ic:'🪓',r:'kayu',an:'chop'},penambang:{n:'Penambang Batu',ic:'⛏️',r:'batu',an:'chop'},pandai:{n:'Penambang Besi',ic:'⚒️',r:'besi',an:'chop'},nelayan:{n:'Nelayan',ic:'🎣',r:'makanan',an:'fish'},pengrajin:{n:'Pengrajin Bata',ic:'🧱',r:'bahan',an:'dig'},
-petani:{n:'Petani',ic:'🌾',at:'ladang',s:2,an:'dig',o:['makanan',1]},pedagang:{n:'Pedagang',ic:'🛒',at:'pasar',s:2,an:'wave'},guru:{n:'Guru',ic:'📚',at:'sekolah',s:2,an:'wave',o:['bahan',1]},perawat:{n:'Perawat',ic:'🩺',at:'puskesmas',s:2,an:'wave'},penjaga:{n:'Penjaga Menara',ic:'🛡️',at:'menara',s:1,an:'stand'},tukangkebun:{n:'Tukang Kebun',ic:'🌳',at:'taman',s:1,an:'dig'}};
+petani:{n:'Petani',ic:'🌾',at:'ladang',s:2,an:'dig',o:['makanan',1]},pedagang:{n:'Pedagang',ic:'🛒',at:'pasar',s:2,an:'wave'},guru:{n:'Guru',ic:'📚',at:'sekolah',s:2,an:'wave',o:['bahan',1]},perawat:{n:'Perawat',ic:'🩺',at:'puskesmas',s:2,an:'wave'},penjaga:{n:'Penjaga Menara',ic:'🛡️',at:'menara',s:1,an:'stand'},tukangkebun:{n:'Tukang Kebun',ic:'🌳',at:'taman',s:1,an:'dig'},
+pegawai:{n:'Pegawai Balai Kota',ic:'🏛️',at:'balaikota',s:2,an:'wave'},petugaslumbung:{n:'Petugas Lumbung',ic:'🌽',at:'lumbung',s:1,an:'dig'},operatorkincir:{n:'Operator Kincir',ic:'💨',at:'kincir',s:1,an:'wave'}};
 const R2J={kayu:'penebang',batu:'penambang',besi:'pandai',makanan:'nelayan',bahan:'pengrajin'},CRC={kayu:0x8a5a2a,batu:0x9a9ea8,besi:0x6b4a4a,makanan:0xe0c060,bahan:0xc2603a},DEP=[47,47];
 const NA=['sari','budi','dewi','rian','nina','agus','putri','dimas','citra','bayu','wulan','fajar','lina','hendra','maya','andi','rina','eko','tika','yoga','intan','rizky','ayu','dani','nadia','fikri','mega','joko','siti','rafi','laras','ilham','tari','galih','vina','reza','salsa','arif','dinda','bagas','fitri','gilang','indah','haikal','kiki','lutfi','mawar','naufal','olivia','panji'],
 NB=['putra','ayu','kusuma','wijaya','saputra','lestari','pratama','santoso','hidayat','nugraha','rahma','permata','utami','setiawan','maulana','ramadhan','anggraini','kurniawan','fauzi','salma','gaming','official','story','daily','vlog'];
@@ -368,14 +371,14 @@ function ev(k,n,names){if(!OWNER)return;ghKick();if(k=='f'){let add=0,last=null;
 if(k=='l'){const g={kayu:2,batu:1,makanan:2,besi:1,bahan:1};RK.forEach(r=>S.res[r]+=g[r]*n);log(`👍 ${n} like → sumber daya bertambah`,'#ffd36a');fl(`+${n} Like`,'#ffd36a')}
 if(k=='s'){S.kas+=5*n;log(`🔁 ${n} share → kas +${5*n}`,'#7fd6ff');fl(`+${5*n} Kas`,'#7fd6ff')}}
 function addUser(){if(!OWNER)return;const i=$('un'),ns=i.value.split(/[\s,;]+/).map(clean).filter(Boolean);i.value='';if(ns.length)ev('f',ns.length,ns);else ev('f',1)}
-function cmt(txt,who){if(!OWNER)return;const i=$('cm');txt=txt||i.value;if(!txt)return;i.value='';log(`💬 ${who||'@kamu'}: ${txt}`,'#ffb3f0');for(const k of txt.toLowerCase().split(/\W+/))if(KEY[k]){const v=KEY[k];if(!S.pri.includes(v)&&!(v=='kastil'&&cnt('kastil')))S.pri.push(v);break}}
-function target(){const h=cnt('rumah');if(S.pri.length)return[S.pri[0],'pri'];if(S.pop>h*3&&(S.pi>=PROG.length||h<4+2*S.pi))return['rumah','h'];if(S.pi<PROG.length)return[PROG[S.pi],'p'];
+function cmt(txt,who){if(!OWNER)return;const i=$('cm');txt=txt||i.value;if(!txt)return;i.value='';log(`💬 ${who||'@kamu'}: ${txt}`,'#ffb3f0');for(const k of txt.toLowerCase().split(/\W+/))if(KEY[k]){const v=KEY[k];if(!S.pri.includes(v)&&!((v=='kastil'||v=='balaikota')&&cnt(v)))S.pri.push(v);break}}
+function target(){const h=cnt('rumah');if(S.pri.length)return[S.pri[0],'pri'];if(!cnt('balaikota')&&!S.noBalai&&S.pop>=DEF.balaikota.p&&h>=2)return['balaikota','b'];if(S.pop>h*3&&(S.pi>=PROG.length||h<4+2*S.pi))return['rumah','h'];if(S.pi<PROG.length)return[PROG[S.pi],'p'];
 for(let k=0;k<LOOP.length;k++){const t=LOOP[(S.li+k)%LOOP.length];if(cnt(t)<CAP[t](S.pop))return[t,'l',k]}return null}
 const val=k=>k=='kas'?S.kas:S.res[k];
 function aff(d){return S.pop>=d.p&&Object.entries(d.c).every(([k,v])=>val(k)>=v)}
 function tick(){const act=S.bs.filter(b=>b.st!='done').length;if(act>=Math.min(3,1+(S.pop/20|0)))return;
 const T=target();if(!T)return;const tp=T[0],src=T[1],d=DEF[tp];if(!aff(d))return;const pos=tp=='kastil'?[46,46]:slot(tp),adv=()=>{if(src=='pri')S.pri.shift();else if(src=='p')S.pi++;else if(src=='l')S.li+=T[2]+1};
-if(!pos){adv();return}
+if(!pos){if(src=='b')S.noBalai=1;adv();return}
 Object.entries(d.c).forEach(([k,v])=>k=='kas'?S.kas-=v:S.res[k]-=v);const b=addB(tp,pos[0],pos[1],false);assign(b);adv();log(`🏗️ Warga mulai membangun ${d.n}`);fl(`🏗️ ${d.n}`,'#fff')}
 function produce(d){const P=S.prod;P.a+=d;P.b+=d;if(P.a>=6){P.a=0;const f=cntD('ladang'),k=cntD('kincir');if(f)S.res.makanan+=f+Math.ceil(f*k*.15)}
 if(P.b>=10){P.b=0;S.kas+=cntD('pasar')*3;S.res.bahan+=cntD('sekolah')}}
@@ -393,11 +396,11 @@ $('feed').innerHTML=S.log.slice(-4).map(l=>`<div style="color:${l.c}">${l.t}</di
 /* ---------- simpan otomatis (aman kalau halaman dimuat ulang) ---------- */
 const SAVEK='wpl2';
 let SVT=0,svBad=0,LOCALTS=0;
-function snapData(){return{ts:Date.now(),verif:S.verif||[],pop:S.pop,res:S.res,kas:S.kas,gaji:S.gaji|0,pi:S.pi,li:S.li,pri:S.pri,bs:S.bs.map(b=>[b.t,b.x,b.y]),vil:S.vil.filter(v=>!v.bani).map(v=>[v.name,v.key,v.named,v.occ,v.auto,v.earn|0]),log:S.log.slice(-10)}}
+function snapData(){return{ts:Date.now(),v:2,verif:S.verif||[],pop:S.pop,res:S.res,kas:S.kas,gaji:S.gaji|0,pi:S.pi,li:S.li,pri:S.pri,bs:S.bs.map(b=>[b.t,b.x,b.y]),vil:S.vil.filter(v=>!v.bani).map(v=>[v.name,v.key,v.named,v.occ,v.auto,v.earn|0]),log:S.log.slice(-10),pj:S.pj||{}}}
 function save(){if(!OWNER)return false;try{localStorage.setItem(SAVEK,JSON.stringify(snapData()));SVT=Date.now();svBad=0;return true}catch(_){svBad=1;return false}}
 function loadData(d){if(!d||!d.bs)return false;init(true);S.verif=Array.isArray(d.verif)?d.verif:[];S.pop=Math.max(MIN_WARGA,(d.pop|0)-(d.vil||[]).filter(q=>q[4]).length);Object.assign(S.res,d.res);S.kas=d.kas|0;S.gaji=d.gaji|0;S.pi=d.pi|0;S.li=d.li|0;S.pri=(d.pri||[]).filter(k=>DEF[k]);
-d.bs.forEach(([t,x,y])=>{if(DEF[t]&&!blk[x][y])addB(t,x,y,true)});addVil(true,'Pak Bani');(d.vil||[]).filter(q=>!q[4]).slice(0,MAKS_WARGA-1).forEach(([n,k,nd,oc,au,er])=>{S.names.add(String(n).toLowerCase());const v=addVil(false,n,k,true);v.named=nd;v.auto=au?1:0;v.earn=er|0;if(oc&&JOBS[oc])employ(v,oc)});
-S.log=(d.log||[]).slice(-10);log('💾 Kota dipulihkan dari simpanan','#9ff59a');return true}
+const L2=(d.v|0)<2;(L2?d.bs.filter(q=>q[0]!='rumah').concat(d.bs.filter(q=>q[0]=='rumah')):d.bs).forEach(([t,x,y])=>{if(!DEF[t]||blk[x][y])return;if(L2&&t=='rumah'&&!fits(x,y,2,2)){const p=slot('rumah');if(p)addB(t,p[0],p[1],true);return}addB(t,x,y,true)});addVil(true,'Pak Bani');(d.vil||[]).filter(q=>!q[4]).slice(0,MAKS_WARGA-1).forEach(([n,k,nd,oc,au,er])=>{S.names.add(String(n).toLowerCase());const v=addVil(false,n,k,true);v.named=nd;v.auto=au?1:0;v.earn=er|0;if(oc&&JOBS[oc])employ(v,oc)});
+S.log=(d.log||[]).slice(-10);S.pj=d.pj||{};log('💾 Kota dipulihkan dari simpanan','#9ff59a');try{offlineCatch(d.ts)}catch(e){console.error(e)}return true}
 function loadGame(){let raw=null;try{raw=localStorage.getItem(SAVEK);const d=JSON.parse(raw);LOCALTS=d&&d.ts||0;return loadData(d)}catch(e){console.error('load gagal',e);try{if(raw)localStorage.setItem(SAVEK+'_bak',raw)}catch(_){}return false}}
 /* ---------- penyimpanan permanen di akun (aktif hanya di halaman Claude yang punya window.claude) ---------- */
 const CLOUD={doc:null,ok:false,sync:false,busy:false,last:'',at:0,err:0};
@@ -547,34 +550,43 @@ const WK={penebang:{n:'Penebang Kayu',ic:'🪓',g:'tap',tx:'Ketuk pohon sebanyak
 penambang:{n:'Penambang Batu',ic:'⛏️',g:'tikus',tx:'Ketuk batu 🪨 yang muncul sebelum hilang. 12 detik!',tg:10},
 nelayan:{n:'Nelayan',ic:'🎣',g:'waktu',tx:'Ketuk Tarik saat penanda ada di zona hijau. 5 kali!',tg:5},
 petani:{n:'Petani',ic:'🌾',g:'tani',tx:'Ketuk 🟫 untuk menanam, tunggu 🌾, lalu ketuk untuk panen. 15 detik!',tg:8},
-pedagang:{n:'Pedagang',ic:'🛒',g:'hitung',tx:'Jawab 5 hitungan dengan benar!',tg:5}};
+pedagang:{n:'Pedagang',ic:'🛒',g:'hitung',tx:'Jawab 5 hitungan dengan benar!',tg:5},
+pengrajin:{n:'Pengrajin Bata',ic:'🧱',g:'tap',em:'🧱',lv:5,pm:1.2,tx:'Ketuk cetakan bata sebanyak mungkin dalam 10 detik!',tg:30},
+pandai:{n:'Penambang Besi',ic:'⚒️',g:'tikus',em:'⚙️',lv:10,pm:1.4,tx:'Ketuk bijih besi ⚙️ yang muncul sebelum hilang. 12 detik!',tg:10},
+tukangkebun:{n:'Tukang Kebun',ic:'🌳',g:'tani',lv:10,pm:1.3,tx:'Tanam 🟫, tunggu tumbuh, lalu panen. 15 detik!',tg:8},
+guru:{n:'Guru',ic:'📚',g:'hitung',op:'x',lv:20,pm:1.8,tx:'Periksa 5 soal perkalian muridmu!',tg:5},
+perawat:{n:'Perawat',ic:'🩺',g:'waktu',bt:'💉 Suntik!',lv:20,pm:1.8,tx:'Ketuk Suntik saat penanda ada di zona hijau. 5 pasien!',tg:5},
+penjaga:{n:'Penjaga Menara',ic:'🛡️',g:'tikus',em:'🦹',lv:30,pm:2,tx:'Ketuk pencuri 🦹 yang muncul sebelum kabur. 12 detik!',tg:10},
+pegawai:{n:'Pegawai Balai Kota',ic:'🏛️',g:'hitung',op:'m',lv:30,pm:2.2,tx:'Hitung anggaran desa: 5 soal campuran!',tg:5}};
 const lvl=()=>lvOf(ME?(ME.xp|0):0);
 let W2=null;
-function wkReward(k,sc){const tg=WK[k].tg,r=Math.min(1,sc/tg),L=lvl();return{pay:Math.max(500,Math.round((1000+r*3000)*(1+(L-1)*.03)/100)*100),xp:Math.round((sc*2+5)*(1+(L-1)*.05)),it:1+Math.floor(r*4)}}
+function wkReward(k,sc){const tg=WK[k].tg,r=Math.min(1,sc/tg),L=lvl();return{pay:Math.max(500,Math.round((1000+r*3000)*(1+(L-1)*.03)*(WK[k].pm||1)/100)*100),xp:Math.round((sc*2+5)*(1+(L-1)*.05)),it:1+Math.floor(r*4)}}
 function wkStop(){if(W2){clearInterval(W2.iv);W2=null}}
 function wkBox(h){$('wkm').innerHTML='<div class="box">'+h+'</div>'}
 function kerja(o){const m=$('wkm');if(!o){wkStop();m.classList.remove('open');return}if(!ME){toast('Daftar dulu lewat kartu');return}kartu(0);m.classList.add('open');wkMenu()}
-function wkMenu(){wkStop();const L=lvl(),j=jabOf(L);wkBox(`<b>💼 Kerja</b><div class="stat"><span>💰 Saldo <b>${rp(ME.sw)}</b></span><span>⭐ Level <b>${L}</b> • ${j[2]} ${j[1]}</span></div><small>Pilih pekerjaan, mainkan, dapatkan gaji (SWP), EXP, dan barang. Gaji makin besar saat levelmu naik. Ingat: saldo dipotong ${rp(POT)} tiap hari.</small>`+Object.entries(WK).map(([k,j])=>`<button onclick="wkStart('${k}')">${j.ic} ${j.n}${ME.jb==k?' ✔':''}</button>`).join('')+`<button class="gr" onclick="kerja(0);hudOpen()">← Kembali ke menu</button>`)}
+function wkMenu(){wkStop();const L=lvl(),j=jabOf(L);wkBox(`<b>💼 Kerja</b><div class="stat"><span>💰 Saldo <b>${rp(ME.sw)}</b></span><span>⭐ Level <b>${L}</b> • ${j[2]} ${j[1]}</span></div><small>Pilih pekerjaan, mainkan, dapatkan gaji (SWP), EXP, dan barang. Gaji makin besar saat levelmu naik. Ingat: saldo dipotong ${rp(POT)} tiap hari.</small>`+Object.entries(WK).map(([k,j])=>L<(j.lv||1)?`<button class="gr" disabled>🔒 ${j.ic} ${j.n} (level ${j.lv})</button>`:`<button onclick="wkStart('${k}')">${j.ic} ${j.n}${j.pm>1?' • gaji ×'+j.pm:''}${ME.jb==k?' ✔':''}</button>`).join('')+`<button class="gr" onclick="kerja(0);hudOpen()">← Kembali ke menu</button>`)}
 function wkSc(){const e=$('wk2');if(e)e.textContent='Skor '+W2.sc}
-function wkStart(k){wkStop();const j=WK[k];W2={k,sc:0,ro:0,left:0,iv:0};const hd=t=>`<b>${j.ic} ${j.n}</b><small>${j.tx}</small><div class="hud2"><span id="wk1">${t}</span><span id="wk2">Skor 0</span></div>`;
-if(j.g=='tap'){W2.left=10;wkBox(hd('⏱ 10')+`<button class="tree" onpointerdown="wkTap(0)">🌳</button>`);W2.iv=setInterval(()=>{W2.left-=.1;$('wk1').textContent='⏱ '+Math.max(0,Math.ceil(W2.left));if(W2.left<=0)wkEnd()},100)}
+function wkStart(k){wkStop();if(lvl()<(WK[k].lv||1)){toast('🔒 Butuh level '+WK[k].lv);return}const j=WK[k];W2={k,sc:0,ro:0,left:0,iv:0};const hd=t=>`<b>${j.ic} ${j.n}</b><small>${j.tx}</small><div class="hud2"><span id="wk1">${t}</span><span id="wk2">Skor 0</span></div>`;
+if(j.g=='tap'){W2.left=10;wkBox(hd('⏱ 10')+`<button class="tree" onpointerdown="wkTap(0)">${j.em||'🌳'}</button>`);W2.iv=setInterval(()=>{W2.left-=.1;$('wk1').textContent='⏱ '+Math.max(0,Math.ceil(W2.left));if(W2.left<=0)wkEnd()},100)}
 else if(j.g=='tikus'){W2.left=12;W2.sp=0;W2.cur=-1;wkBox(hd('⏱ 12')+`<div class="g9">`+[0,1,2,3,4,5,6,7,8].map(i=>`<button id="c${i}" onpointerdown="wkTap(${i})"></button>`).join('')+`</div>`);
- W2.iv=setInterval(()=>{W2.left-=.1;W2.sp-=.1;$('wk1').textContent='⏱ '+Math.max(0,Math.ceil(W2.left));if(W2.sp<=0){W2.sp=.8;if(W2.cur>=0)$('c'+W2.cur).textContent='';let n;do{n=Math.random()*9|0}while(n==W2.cur);W2.cur=n;$('c'+n).textContent='🪨'}if(W2.left<=0)wkEnd()},100)}
-else if(j.g=='waktu'){W2.p=0;W2.d=1;W2.zs=.15+Math.random()*.5;wkBox(hd('Ronde 1/5')+`<div class="bar2"><i id="zn"></i><b id="mk"></b></div><button class="btn" onpointerdown="wkTap(0)">🎣 Tarik!</button>`);wkZone();
+ W2.iv=setInterval(()=>{W2.left-=.1;W2.sp-=.1;$('wk1').textContent='⏱ '+Math.max(0,Math.ceil(W2.left));if(W2.sp<=0){W2.sp=.8;if(W2.cur>=0)$('c'+W2.cur).textContent='';let n;do{n=Math.random()*9|0}while(n==W2.cur);W2.cur=n;$('c'+n).textContent=j.em||'🪨'}if(W2.left<=0)wkEnd()},100)}
+else if(j.g=='waktu'){W2.p=0;W2.d=1;W2.zs=.15+Math.random()*.5;wkBox(hd('Ronde 1/5')+`<div class="bar2"><i id="zn"></i><b id="mk"></b></div><button class="btn" onpointerdown="wkTap(0)">${j.bt||'🎣 Tarik!'}</button>`);wkZone();
  W2.iv=setInterval(()=>{const sp=.012+W2.ro*.004;W2.p+=W2.d*sp;if(W2.p>=1){W2.p=1;W2.d=-1}if(W2.p<=0){W2.p=0;W2.d=1}$('mk').style.left=(W2.p*96)+'%'},16)}
 else if(j.g=='tani'){W2.left=15;W2.st=[0,0,0,0,0,0];W2.tm=[0,0,0,0,0,0];wkBox(hd('⏱ 15')+`<div class="g6">`+[0,1,2,3,4,5].map(i=>`<button id="c${i}" onpointerdown="wkTap(${i})">🟫</button>`).join('')+`</div>`);
  W2.iv=setInterval(()=>{W2.left-=.1;$('wk1').textContent='⏱ '+Math.max(0,Math.ceil(W2.left));for(let i=0;i<6;i++)if(W2.st[i]==1){W2.tm[i]-=.1;if(W2.tm[i]<=0){W2.st[i]=2;$('c'+i).textContent='🌾'}}if(W2.left<=0)wkEnd()},100)}
 else{W2.a=0;W2.o=[];wkBox(hd('Soal 1/5')+`<div class="soal" id="sq"></div><div class="g3" id="so"></div>`);wkSoal()}}
 function wkZone(){W2.zs=.1+Math.random()*.55;const z=$('zn');if(z){z.style.left=(W2.zs*96)+'%';z.style.width='28%'}$('wk1').textContent='Ronde '+(W2.ro+1)+'/5'}
-function wkSoal(){const a=2+Math.random()*10|0,b=2+Math.random()*10|0,ans=a+b,set=new Set([ans]);while(set.size<3)set.add(ans+(Math.random()*7|0)-3);W2.a=ans;const o=[...set].sort(()=>Math.random()-.5);$('sq').textContent=a+' + '+b+' = ?';$('so').innerHTML=o.map(v=>`<button onpointerdown="wkTap(${v})">${v}</button>`).join('');$('wk1').textContent='Soal '+(W2.ro+1)+'/5'}
+function wkSoal(){const op=WK[W2.k].op||'+',o2=op=='m'?['+','-','x'][Math.random()*3|0]:op;let a=2+Math.random()*10|0,b=2+Math.random()*10|0;if(o2=='x'){a=2+Math.random()*9|0;b=2+Math.random()*9|0}if(o2=='-'&&b>a){const z=a;a=b;b=z}
+const ans=o2=='+'?a+b:o2=='-'?a-b:a*b,set=new Set([ans]);while(set.size<3){const d=(Math.random()*7|0)-3;if(d)set.add(Math.max(0,ans+d))}W2.a=ans;const o=[...set].sort(()=>Math.random()-.5);
+$('sq').textContent=a+' '+(o2=='x'?'×':o2=='-'?'−':'+')+' '+b+' = ?';$('so').innerHTML=o.map(v=>`<button onpointerdown="wkTap(${v})">${v}</button>`).join('');$('wk1').textContent='Soal '+(W2.ro+1)+'/5'}
 function wkTap(i){if(!W2)return;const g=WK[W2.k].g;
 if(g=='tap'){W2.sc++;wkSc()}
 else if(g=='tikus'){if(i==W2.cur){W2.sc++;W2.cur=-1;$('c'+i).textContent='💥';wkSc()}}
 else if(g=='waktu'){if(W2.p>=W2.zs&&W2.p<=W2.zs+28/96){W2.sc++;wkSc()}W2.ro++;if(W2.ro>=5)wkEnd();else wkZone()}
 else if(g=='tani'){const st=W2.st[i];if(st==0){W2.st[i]=1;W2.tm[i]=1.2+Math.random()*1.2;$('c'+i).textContent='🌱'}else if(st==2){W2.st[i]=0;W2.sc++;$('c'+i).textContent='🟫';wkSc()}}
 else{if(i==W2.a)W2.sc++;W2.ro++;wkSc();if(W2.ro>=5)wkEnd();else wkSoal()}}
-function wkEnd(){if(!W2)return;const k=W2.k,sc=W2.sc;wkStop();meFix();const lv0=lvl(),r=wkReward(k,sc),j=WK[k],it=ITM[k];swAdd(r.pay,'Gaji '+j.n);ME.inv[it]=(ME.inv[it]|0)+r.it;ME.jb=k;msAdd('kerja');msAdd('jenis',k);xpAdd(r.xp,true);meSave();if(ME.v&&S.vil.includes(ME.v)&&JOBS[k])employ(ME.v,k);
-const lv1=lvl(),a=jabOf(lv0),b=jabOf(lv1);wkBox(`<b>${j.ic} Selesai bekerja!</b><div class="stat"><span>Skor <b>${sc}/${j.tg}</b></span><span>Gaji <b>+${rp(r.pay)}</b></span><span>EXP <b>+${r.xp}</b></span><span>${ITL[it][0]} <b>+${r.it}</b></span></div>${lv1>lv0?'<div class="warn">🎉 Naik level! Sekarang Level '+lv1+(a[1]!=b[1]?'. Jabatan baru: '+b[2]+' '+b[1]:'')+', gaji lebih besar.</div>':''}<small>Saldo sekarang: ${rp(ME.sw)}. Karaktermu kini bekerja sebagai ${j.n} di kota.</small><button class="btn" onclick="wkStart('${k}')">🔁 Kerja lagi</button><button onclick="wkMenu()">Pilih pekerjaan lain</button><button class="gr" onclick="kerja(0);hudOpen()">Menu pemain</button><button class="gr" onclick="kerja(0)">Tutup</button>`)}
+function wkEnd(){if(!W2)return;const k=W2.k,sc=W2.sc;wkStop();meFix();const lv0=lvl(),r=wkReward(k,sc),j=WK[k],it=ITM[k];swAdd(r.pay,'Gaji '+j.n);if(it)ME.inv[it]=(ME.inv[it]|0)+r.it;ME.jb=k;msAdd('kerja');msAdd('jenis',k);xpAdd(r.xp,true);meSave();if(ME.v&&S.vil.includes(ME.v)&&JOBS[k])employ(ME.v,k);
+const lv1=lvl(),a=jabOf(lv0),b=jabOf(lv1);wkBox(`<b>${j.ic} Selesai bekerja!</b><div class="stat"><span>Skor <b>${sc}/${j.tg}</b></span><span>Gaji <b>+${rp(r.pay)}</b></span><span>EXP <b>+${r.xp}</b></span>${it?`<span>${ITL[it][0]} <b>+${r.it}</b></span>`:''}</div>${lv1>lv0?'<div class="warn">🎉 Naik level! Sekarang Level '+lv1+(a[1]!=b[1]?'. Jabatan baru: '+b[2]+' '+b[1]:'')+', gaji lebih besar.</div>':''}<small>Saldo sekarang: ${rp(ME.sw)}. Karaktermu kini bekerja sebagai ${j.n} di kota.</small><button class="btn" onclick="wkStart('${k}')">🔁 Kerja lagi</button><button onclick="wkMenu()">Pilih pekerjaan lain</button><button class="gr" onclick="kerja(0);hudOpen()">Menu pemain</button><button class="gr" onclick="kerja(0)">Tutup</button>`)}
 /* ---------- pemilik: setujui warga yang sudah DM kode ---------- */
 function showText(t,txt,note){const m=$('recm');m.innerHTML=`<div class="box"><b>${t}</b><textarea id="stx" readonly></textarea><button onclick="copyTxt()">📋 Salin</button><small>${note}</small><button onclick="recClose()">Tutup</button></div>`;$('stx').value=txt;m.classList.add('open')}
 function copyTxt(){const e=$('stx');try{navigator.clipboard.writeText(e.value).then(()=>toast('📋 Disalin'),()=>{e.select();document.execCommand('copy')})}catch(_){e.select()}}
@@ -644,7 +656,7 @@ let tapN=0,tapT=0;$('own').addEventListener('click',()=>{const n=performance.now
 if(!OWNER&&/pemilik/.test(location.hash+location.search))setTimeout(ownerLogin,400);
 /* ====================== v3.8 • PROFIL, HUD PEMAIN, SALDO SWP, RUMAH MODERN ======================
    Semua angka yang boleh diubah ada di baris const di bawah ini. */
-const SW0=25000,POT=5000,PASIF=150,LVMAX=100;   // saldo awal (SWP) • potongan harian • gaji pasif per siklus kerja karakter di kota • level maksimum
+const SW0=25000,POT=5000,PASIF=150,LVMAX=100,KAS_RP=1000;   // saldo awal (SWP) • potongan harian • gaji pasif per siklus kerja karakter di kota • level maksimum
 const HARI=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
 const JAB=[[1,'Pendatang Baru','🧳','#9fb4d0'],[10,'Magang','📘','#7fd6ff'],[20,'Warga Lokal','🏡','#9ff59a'],[30,'Manager','💼','#ffd36a'],[50,'Orang Kaya','💎','#ff9ad5'],[60,'Donatur','🎗️','#ffe14d']];
 const jabOf=L=>{let j=JAB[0];for(const q of JAB)if(L>=q[0])j=q;return j};
@@ -655,8 +667,8 @@ const esc=s=>String(s==null?'':s).replace(/[<>&"']/g,c=>({'<':'&lt;','>':'&gt;',
 const p2=n=>String(n).padStart(2,'0');
 const dayKey=()=>{const d=new Date();return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate())};
 const dayDiff=(a,b)=>Math.round((Date.parse(b+'T00:00:00')-Date.parse(a+'T00:00:00'))/864e5);
-const ITM={penebang:'kayu',penambang:'batu',nelayan:'ikan',petani:'panen',pedagang:'barang'};
-const ITL={kayu:['🪵','Kayu',200],batu:['🪨','Batu',250],ikan:['🐟','Ikan',300],panen:['🌾','Hasil panen',250],barang:['📦','Barang dagangan',350]};
+const ITM={penebang:'kayu',penambang:'batu',nelayan:'ikan',petani:'panen',pedagang:'barang',pandai:'besi',pengrajin:'bahan',tukangkebun:'panen'};
+const ITL={kayu:['🪵','Kayu',200],batu:['🪨','Batu',250],ikan:['🐟','Ikan',300],panen:['🌾','Hasil panen',250],barang:['📦','Barang dagangan',350],besi:['⚙️','Besi',400],bahan:['🧱','Bata',300]};
 const MS_DEF=[{k:'kerja',t:'Kerja 3 kali',n:3,rp:5000,xp:40,ic:'💼'},{k:'jenis',t:'Coba 2 jenis pekerjaan',n:2,rp:4000,xp:30,ic:'🧰'},{k:'rumah',t:'Masuk ke rumahmu',n:1,rp:2000,xp:20,ic:'🏠'},{k:'jual',t:'Jual hasil kerja di Toko',n:1,rp:3000,xp:25,ic:'🛒'}];
 let FOTO=null,PORTURL=null,PORTSIG='';try{FOTO=localStorage.getItem('wpl_foto')}catch(_){}
 const nmShow=()=>ME?(ME.nm||'@'+ME.u):'Nama Pemain';
@@ -668,10 +680,12 @@ function swAdd(n,label){if(!ME)return;n=Math.round(n);ME.sw=Math.max(0,(ME.sw|0)
 function xpAdd(n,quiet){if(!ME)return;const l0=lvl();ME.xp=Math.min(XPL(LVMAX),(ME.xp|0)+Math.round(n));const l1=lvl();meSave();if(l1>l0&&!quiet){const a=jabOf(l0),b=jabOf(l1);toast(a[1]!=b[1]?`🎉 Naik level ${l1}! Jabatan baru: ${b[2]} ${b[1]}`:`⭐ Naik ke level ${l1}`)}return l1>l0}
 /* potongan harian: setiap pergantian hari (jam perangkat) saldo dipotong POT; kalau aplikasi tidak dibuka beberapa hari, dihitung maksimal 7 hari */
 function potongHarian(){if(!ME)return;const t=dayKey();if(!ME.cut){ME.cut=t;meSave();return}if(ME.cut==t)return;let n=dayDiff(ME.cut,t);if(!(n>0)){ME.cut=t;meSave();return}n=Math.min(7,n);let tot=0;for(let i=0;i<n;i++){const c=Math.min(POT,ME.sw|0);ME.sw=(ME.sw|0)-c;tot+=c}ME.cut=t;
- if(tot>0){ME.tx.push([Date.now(),-tot,n>1?`Potongan harian SWP ×${n} hari`:'Potongan harian SWP']);if(ME.tx.length>40)ME.tx.shift()}meSave();
- toast(tot>=POT*n?`💸 Potongan harian ${rp(tot)} • Saldo ${rp(ME.sw)}`:`💸 Potongan harian ${rp(tot)} (saldo tidak cukup) • Saldo ${rp(ME.sw)}`)}
+ let kk=0;if(tot>0){ME.tx.push([Date.now(),-tot,(n>1?`Potongan harian SWP ×${n} hari`:'Potongan harian SWP')+' → Kas Desa']);if(ME.tx.length>40)ME.tx.shift();
+  kk=Math.round(tot/KAS_RP);if(kk>0){if(!OWNER&&PJ_DB())pjAntri(t,ME.u,kk);else if(typeof S!='undefined'&&S){S.kas+=kk;log(`🏦 Pajak harian @${ME.u}: Kas Desa +${kk}`,'#ffd36a');if(OWNER){save();ghKick()}}}}meSave();
+ toast((tot>=POT*n?`💸 Potongan harian ${rp(tot)}`:`💸 Potongan harian ${rp(tot)} (saldo tidak cukup)`)+(kk?` → Kas Desa +${kk}`:'')+` • Saldo ${rp(ME.sw)}`)}
 let meT=0;
-function meTick(){const n=performance.now();if(n-meT<1000)return;meT=n;if(!ME)return;potongHarian();if(ME.ms&&ME.ms.d!=dayKey())msFix()}
+let pjS=0;
+function meTick(){const n=performance.now();if(n-meT<1000)return;meT=n;if(OWNER)pjTarik();else if(n-pjS>30000){pjS=n;pjKirim()}if(!ME)return;potongHarian();if(ME.ms&&ME.ms.d!=dayKey())msFix()}
 /* misi harian */
 function msFix(){if(!ME)return;const d=dayKey();if(!ME.ms||ME.ms.d!=d)ME.ms={d,p:{kerja:0,jenis:[],rumah:0,jual:0},c:{}};if(!ME.ms.p)ME.ms.p={kerja:0,jenis:[],rumah:0,jual:0};if(!ME.ms.c)ME.ms.c={}}
 function msAdd(k,v){if(!ME)return;msFix();const p=ME.ms.p;if(k=='kerja')p.kerja++;else if(k=='jenis'){if(!p.jenis.includes(v))p.jenis.push(v)}else p[k]=1;meSave()}
@@ -689,6 +703,21 @@ function togOff(){if(!ME)return;ME.off=!ME.off;meSave();toast(ME.off?'⚫ Status
 async function avatarUrl(){if(FOTO)return FOTO;const lk=lookMe(),s=sig(lk);if(PORTURL&&PORTSIG==s)return PORTURL;PORTSIG=s;PORTURL=await potret(lk);return PORTURL}
 const xpBar=()=>{const L=lvl(),x=ME.xp|0;if(L>=LVMAX)return[x-XPL(LVMAX),0,100];const a=XPL(L),b=XPL(L+1);return[x-a,b-a,Math.round((x-a)/(b-a)*100)]};
 const waktuDesa=()=>{const d=new Date(),h=d.getHours();return{t:p2(h)+':'+p2(d.getMinutes()),d:HARI[d.getDay()],p:h>=5&&h<11?'🌅 Pagi':h>=11&&h<15?'☀️ Siang':h>=15&&h<18?'🌇 Sore':'🌙 Malam'}};
+
+/* ---------- Kas Desa dari semua pemain lewat server gratis (Firebase Realtime Database, REST) ----------
+   Pemain menulis 1 catatan per hari: pajak/TANGGAL/username = {k:kas}. Perangkat Pak Bani membaca catatan itu tiap menit
+   dan menambahkannya ke Kas Desa (tiap catatan hanya dihitung sekali). Aktif kalau PAJAK_DB di config.js diisi. */
+const PJ_DB=()=>typeof PAJAK_DB!='undefined'?String(PAJAK_DB||'').trim().replace(/\/+$/,''):'';
+function pjAntri(tgl,u,k){let q=[];try{q=JSON.parse(localStorage.getItem('wpl_pj')||'[]')}catch(_){}if(!q.some(x=>x[0]==tgl&&x[1]==u))q.push([tgl,u,k]);try{localStorage.setItem('wpl_pj',JSON.stringify(q.slice(-30)))}catch(_){}pjKirim()}
+let pjBusy=0,pjT=-1e9;
+async function pjKirim(){const db=PJ_DB();if(!db||pjBusy||typeof fetch!='function')return;let q=[];try{q=JSON.parse(localStorage.getItem('wpl_pj')||'[]')}catch(_){}if(!q.length)return;pjBusy=1;
+ try{const rest=[];for(const it of q){try{const r=await fetch(db+'/pajak/'+it[0]+'/'+encodeURIComponent(String(it[1]).replace(/[.$#\[\]\/]/g,','))+'.json',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({k:it[2],t:Date.now()})});if(!(r.ok||r.status==401||r.status==403))rest.push(it)}catch(_){rest.push(it)}}localStorage.setItem('wpl_pj',JSON.stringify(rest))}catch(_){}pjBusy=0}
+async function pjTarik(){if(!OWNER||typeof S=='undefined'||!S)return;const db=PJ_DB();if(!db||typeof fetch!='function')return;const n=performance.now();if(n-pjT<60000)return;pjT=n;
+ try{const d0=new Date(Date.now()-10*864e5),from=d0.getFullYear()+'-'+p2(d0.getMonth()+1)+'-'+p2(d0.getDate());
+ const r=await fetch(db+'/pajak.json?orderBy=%22%24key%22&startAt=%22'+from+'%22');if(!r.ok)return;const d=await r.json();if(!d||typeof d!='object')return;
+ S.pj=S.pj||{};let kas=0,jml=0;for(const tgl in d)for(const u in d[tgl]){const key=tgl+'/'+u;if(S.pj[key])continue;const k=+(d[tgl][u]&&d[tgl][u].k);S.pj[key]=1;if(k>0&&k<=35){kas+=k;jml++}}
+ for(const key in S.pj)if(key.slice(0,10)<from)delete S.pj[key];
+ if(jml){S.kas+=kas;log(`🏦 Pajak harian ${jml} warga: Kas Desa +${kas}`,'#ffd36a');fl('🏦 +'+kas+' Kas','#ffd36a');save();ghKick()}}catch(_){}}
 /* ---------- HUD utama pemain ---------- */
 const HM={scr:'home'};
 const hm=o=>{const m=$('hm');m.classList.toggle('open',!!o);if(!o){m.innerHTML='';HM.scr=''}};
@@ -711,9 +740,9 @@ function hmInv(){let v=0;const r=Object.entries(ITL).map(([k,i])=>{const q=ME.in
 function hmToko(){let v=0;const r=Object.entries(ITL).map(([k,i])=>{const q=ME.inv[k]|0;v+=q*i[2];return`<div class="rw"><span>${i[0]} ${i[1]}<small>${rp(i[2])}/buah</small></span><b>${q}</b><button ${q?'':'disabled'} onclick="jual('${k}')">Jual</button></div>`}).join('');
  hmSub('🛒 Toko Desa',r+`<button class="btn" ${v?'':'disabled'} onclick="jual('*')">💰 Jual semua (${rp(v)})</button><small>Saldo kamu: ${rp(ME.sw)}</small>`)}
 function swRiwayat(){const l=ME.tx.slice().reverse().slice(0,20).map(t=>{const d=new Date(t[0]);return`<div class="rw"><span>${esc(t[2])}<small>${p2(d.getDate())}/${p2(d.getMonth()+1)} ${p2(d.getHours())}:${p2(d.getMinutes())}</small></span><b class="${t[1]<0?'mn':'pl'}">${t[1]<0?'−':'+'}${rp(Math.abs(t[1]))}</b></div>`}).join('')||'<small>Belum ada transaksi.</small>';
- hmSub('💰 Saldo Warga Pulau (SWP)',`<div class="big">${rp(ME.sw)}</div><div class="rw"><span>Total penghasilan</span><b>${rp(ME.tot)}</b></div><div class="rw"><span>Potongan harian</span><b>−${rp(POT)}</b></div><small>Setiap hari saldo dipotong ${rp(POT)} SWP. Saldo tidak bisa di bawah Rp0. Tambah saldo dengan bekerja, menyelesaikan misi, dan menjual hasil kerja.</small><b>Riwayat transaksi</b>${l}`)}
+ hmSub('💰 Saldo Warga Pulau (SWP)',`<div class="big">${rp(ME.sw)}</div><div class="rw"><span>Total penghasilan</span><b>${rp(ME.tot)}</b></div><div class="rw"><span>Potongan harian</span><b>−${rp(POT)}</b></div><small>Setiap hari saldo dipotong ${rp(POT)} SWP dan masuk ke Kas Desa (${rp(KAS_RP)} SWP = 1 kas). Saldo tidak bisa di bawah Rp0. Tambah saldo dengan bekerja, menyelesaikan misi, dan menjual hasil kerja.</small><b>Riwayat transaksi</b>${l}`)}
 function hmSosial(){const me=ME.v,L=S.vil.filter(v=>!v.bani&&v!==me).slice(0,60),row=(v,t)=>`<div class="rw"><span>${v.occ?JOBS[v.occ].ic:'🚶'} ${esc(v.name)}<small>${t||(v.occ?JOBS[v.occ].n:'Belum bekerja')}</small></span><button onclick="lihatWarga(${S.vil.indexOf(v)})">Lihat</button></div>`;
- hmSub('👥 Sosial',`<div class="rw tot"><span>Warga di pulau</span><b>${S.pop}</b></div>`+(me&&S.vil.includes(me)?row(me,'Kamu'):'')+row(S.vil[0],'Pemilik desa')+L.map(v=>row(v)).join('')+'<small>Status online/offline lintas perangkat butuh server; saat ini status hanya untuk akunmu sendiri.</small>')}
+ hmSub('👥 Sosial',`<div class="rw tot"><span>Warga di pulau</span><b>${S.pop}</b></div><div class="rw tot"><span>🏦 Kas Desa</span><b>${S.kas}</b></div>`+(me&&S.vil.includes(me)?row(me,'Kamu'):'')+row(S.vil[0],'Pemilik desa')+L.map(v=>row(v)).join('')+'<small>Status online/offline lintas perangkat butuh server; saat ini status hanya untuk akunmu sendiri.</small>')}
 function lihatWarga(i){const v=S.vil[i];if(!v)return;hm(0);if(camMode)setCam(0);followV=v;follow=true;auto=false;rad=14;ph=1.1}
 function hmMisi(){msFix();const r=MS_DEF.map(d=>{const p=Math.min(d.n,msProg(d.k)),c=ME.ms.c[d.k],ok=p>=d.n;return`<div class="ms"><div><b>${d.ic} ${d.t}</b><small>Hadiah ${rp(d.rp)} + ${d.xp} EXP</small><div class="xpb"><i style="width:${p/d.n*100}%"></i></div></div>${c?'<span class="dn">✓</span>':ok?`<button class="btn" onclick="msKlaim('${d.k}')">Klaim</button>`:`<span class="pg">${p}/${d.n}</span>`}</div>`}).join('');
  hmSub('📋 Misi Harian',r+'<small>Misi direset setiap hari.</small>')}
@@ -755,7 +784,7 @@ m.innerHTML=`<div class="box">${h}</div>`;
 if(ME){const url=await avatarUrl();if(tok!==kkTok)return;const pi=$('pfimg');if(pi&&url)pi.src=url;const L=lvl(),j=jabOf(L),png=await kartuGambar({nm:nmShow(),no:ME.no||meNo(ME.u),tgl:new Date(ME.t2||ME.t||Date.now()).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}),url,ok:ME.ok,jb:ME.jb&&WK[ME.jb]?WK[ME.jb].ic+' '+WK[ME.jb].n:'Belum bekerja',sw:rp(ME.sw),lv:L,jab:j[2]+' '+j[1]});
  if(tok!==kkTok)return;const im=$('kkimg'),dl=$('kkdl');if(im)im.src=png;if(dl)dl.href=png}}
 /* ---------- rumah modern (tampak luar) ---------- */
-const MODW=[0xf3f1ec,0xe8e6e1,0xdfe5e8,0xf0e9df,0xe3e7ea],MODA=[0x34383f,0x8b5e3c,0x2e4a5a,0x4d5b45,0x6b4f3a];
+const MODW=[0xf3f1ec,0xe8e6e1,0xdfe5e8,0xf0e9df,0xe3e7ea],MODA=[0x4a5560,0x5d6b78,0x3d4a55,0x6a7380,0x4b4f58];
 MK.rumah=(g,i)=>{const w=MODW[i%5],a=MODA[i%5];
  B(g,.8,.42,.54,w,0,.21,-.06);                       // lantai bawah
  B(g,.86,.03,.6,0xc9c9c4,0,.435,-.03);               // plat beton
@@ -764,12 +793,23 @@ MK.rumah=(g,i)=>{const w=MODW[i%5],a=MODA[i%5];
  B(g,.2,.02,.14,0x1f3a5f,-.2,.83,.02,1);B(g,.2,.02,.14,0x1f3a5f,.02,.83,.02,1);   // panel surya
  B(g,.36,.24,.02,WM,-.12,.2,.215,1);B(g,.38,.02,.03,0x2a2a2e,-.12,.33,.22,1);       // jendela kaca besar
  B(g,.46,.2,.02,WM,-.08,.62,.345,1);B(g,.02,.2,.03,0x2a2a2e,-.08,.62,.35,1);        // jendela lantai atas
- B(g,.15,.3,.02,0x2a2118,.24,.15,.215,1);B(g,.02,.06,.03,0xd8c070,.29,.16,.225,1);  // pintu
+ B(g,.15,.3,.02,0x2a2f38,.24,.15,.215,1);B(g,.02,.06,.03,0xd8c070,.29,.16,.225,1);  // pintu
  B(g,.03,.42,.03,0x2a2a2e,.3,.21,.32,1);                                             // tiang teras
- B(g,.24,.02,.2,0x9a6b45,.18,.01,.3,1);                                              // dek kayu
+ B(g,.24,.02,.2,0xb9b9b4,.18,.01,.3,1);                                              // dek kayu
  B(g,.3,.07,.06,0x2f8f3a,-.24,.035,.4,1);B(g,.14,.01,.1,0xd8d0bd,.2,.005,.44,1);    // tanaman & jalan setapak
- B(g,.05,.12,.05,0x6b4a2a,.38,.06,.42,1);B(g,.16,.16,.16,0x3aa84a,.38,.2,.42,1);    // pohon kecil
+ B(g,.05,.12,.05,0x4a4f57,.38,.06,.42,1);B(g,.16,.16,.16,0x3aa84a,.38,.2,.42,1);    // pohon kecil
  B(g,.02,.2,.4,WM,.402,.62,.06,1)};                                                  // jendela samping
+/* ---------- Balai Kota (tempat Pak Bani) ---------- */
+MK.balaikota=g=>{const S1=0xeeeae0,CL=0xf8f6ef,RF=0x4a5a6a;
+ B(g,.98,.06,.8,0xbdbdb6,0,.03,0);B(g,.9,.05,.74,0xd0cfc8,0,.085,.02,1);          // alas & tangga
+ B(g,.84,.46,.5,S1,0,.36,-.06);B(g,.9,.05,.56,RF,0,.62,-.06);                       // badan & atap datar
+ [-.3,-.1,.1,.3].forEach(x=>B(g,.07,.44,.07,CL,x,.33,.27));                         // tiang depan
+ B(g,.86,.06,.16,CL,0,.58,.27);B(g,.5,.07,.16,CL,0,.65,.27);B(g,.26,.07,.16,CL,0,.72,.27); // serambi bertingkat
+ [-.35,.35].forEach(x=>B(g,.1,.16,.02,WM,x,.4,.195,1));[-.2,.2].forEach(x=>B(g,.1,.16,.02,WM,x,.4,.195,1));
+ B(g,.16,.26,.02,0x24304a,0,.21,.195,1);B(g,.3,.05,.02,0xd8b04a,0,.52,.2,1);          // pintu & papan nama emas
+ B(g,.24,.34,.24,S1,0,.84,-.06);B(g,.14,.14,.02,0xffffff,0,.87,.07,1);B(g,.02,.06,.02,0x222222,0,.89,.082,1);B(g,.05,.02,.02,0x222222,.02,.87,.082,1); // menara jam
+ Rf(g,.2,.28,RF,0,1.01,-.06);B(g,.015,.28,.015,0xdddddd,0,1.42,-.06,1);B(g,.14,.07,.01,0xd8322f,.075,1.5,-.06,1);B(g,.14,.07,.01,0xffffff,.075,1.43,-.06,1); // atap menara & bendera
+ B(g,.7,.1,.03,0xd0cfc8,0,.07,.4,1)};
 /* ---------- masuk & keluar rumah ---------- */
 function rumahMilik(){const hs=S.bs.filter(b=>b.t=='rumah'&&b.st=='done');if(!hs.length)return null;if(ME&&ME.hx!=null){const f=hs.find(b=>b.x==ME.hx&&b.y==ME.hy);if(f)return f}
  const b=hs[hash(ME?ME.u:'x')%hs.length];if(ME){ME.hx=b.x;ME.hy=b.y;meSave()}return b}
@@ -804,27 +844,27 @@ function plant(g,x,z,s){bb(g,.34*s,.3*s,.34*s,0xe9e4da,x,FLR,z);const l=[0x2f8f3
 function lampuRuang(g,x,y0,z){bb(g,.1,.3,.1,0x333333,x,y0,z);B(g,.3,.24,.3,ILM,x,y0+.42,z,1)}
 function art(g,x,y,z,w,h,c,rot){const m=B(g,w,h,.04,c,x,y,z,1);if(rot)m.rotation.y=Math.PI/2;B(g,w+.08,h+.08,.03,0x222222,x,y,z-.005,1).rotation.y=rot?Math.PI/2:0}
 const ROOMB={
-tidur(g){shell(g,[0xc89a64,0xbf8f5a],0xe9e6df,0x6f8794);
+tidur(g){shell(g,[0xdfe2e6,0xd3d7dc],0xe9e6df,0xc9d0d6);
  win(g,-2.47,1.8,-1.2,1.4,1.1,1,0xf2f2f2);
- bb(g,2.1,.35,2.4,0x5a4030,.3,FLR,-1.25);bb(g,1.95,.26,2.25,0xffffff,.3,.39,-1.2);bb(g,2.3,1.2,.14,0x3b2c22,.3,FLR,-2.42);
- bb(g,.75,.16,.4,0xf4f4f4,-.1,.65,-2.0);bb(g,.75,.16,.4,0xf4f4f4,.7,.65,-2.0);bb(g,1.95,.08,1.3,0x3f5b73,.3,.65,-.75);bb(g,1.95,.05,.3,0xd8c3a5,.3,.73,-.2);
- bb(g,.55,.5,.5,0xd8c3a5,-1.25,FLR,-2.2);bb(g,.55,.5,.5,0xd8c3a5,1.85,FLR,-2.2);lampuRuang(g,-1.25,.54,-2.2);lampuRuang(g,1.85,.54,-2.2);
+ bb(g,2.1,.35,2.4,0x3b4048,.3,FLR,-1.25);bb(g,1.95,.26,2.25,0xffffff,.3,.39,-1.2);bb(g,2.3,1.2,.14,0x2f343b,.3,FLR,-2.42);
+ bb(g,.75,.16,.4,0xf4f4f4,-.1,.65,-2.0);bb(g,.75,.16,.4,0xf4f4f4,.7,.65,-2.0);bb(g,1.95,.08,1.3,0x9aa5b1,.3,.65,-.75);bb(g,1.95,.05,.3,0xcfd4da,.3,.73,-.2);
+ bb(g,.55,.5,.5,0xcfd4da,-1.25,FLR,-2.2);bb(g,.55,.5,.5,0xcfd4da,1.85,FLR,-2.2);lampuRuang(g,-1.25,.54,-2.2);lampuRuang(g,1.85,.54,-2.2);
  bb(g,.65,2.5,1.7,0xf0ece4,-2.15,FLR,.7);bb(g,.04,2.2,.03,0x999999,-1.82,.2,.2);bb(g,.04,2.2,.03,0x999999,-1.82,.2,1.2);
- bb(g,2.8,.03,1.9,0xb9c4cc,.3,FLR,.2);
- bb(g,1.5,.07,.65,0xd8c3a5,-1.7,.75,2.1);bb(g,.07,.75,.65,0xd8c3a5,-2.4,FLR,2.1);bb(g,.07,.75,.65,0xd8c3a5,-1.0,FLR,2.1);bb(g,.45,.05,.4,0x222222,-1.7,.82,2.1);bb(g,.4,.32,.06,0x1a1a1f,-1.7,.87,2.0);
+ bb(g,2.8,.03,1.9,0xe9ecef,.3,FLR,.2);
+ bb(g,1.5,.07,.65,0xcfd4da,-1.7,.75,2.1);bb(g,.07,.75,.65,0xcfd4da,-2.4,FLR,2.1);bb(g,.07,.75,.65,0xcfd4da,-1.0,FLR,2.1);bb(g,.45,.05,.4,0x222222,-1.7,.82,2.1);bb(g,.4,.32,.06,0x1a1a1f,-1.7,.87,2.0);
  bb(g,.5,.08,.5,0x333333,-1.2,.45,2.0);bb(g,.5,.45,.08,0x333333,-1.2,.45,2.28);
- plant(g,2.1,2.0,1.1);art(g,.3,1.9,-2.44,.9,.6,0x9fb4d0);art(g,1.3,1.8,-2.44,.5,.5,0xe8b923)},
-tamu(g){shell(g,[0xd9d2c5,0xcfc7b8],0xf1efe9,0x7a6a5a);
- for(let i=0;i<9;i++)bb(g,.12,2.6,.06,i%2?0x8a6a4a:0x9a7a58,-1.5+i*.4,.2,-2.46);
- win(g,-2.47,1.8,1.0,1.4,1.1,1,0xd8c3a5);
- bb(g,2.4,.5,.55,0x4a3a2e,.2,FLR,-2.2);B(g,1.7,.95,.06,TVM,.2,1.5,-2.42,1);bb(g,1.8,.04,.06,0x111111,.2,1.0,-2.43);
- bb(g,3.2,.12,.35,0xd8c3a5,.2,2.5,-2.3);bb(g,.3,.4,.2,0xc23b2e,-.9,2.62,-2.3);bb(g,.3,.3,.2,0x2f8f3a,-.4,2.62,-2.3);
+ plant(g,2.1,2.0,1.1);art(g,.3,1.9,-2.44,.9,.6,0xb8c0c8);art(g,1.3,1.8,-2.44,.5,.5,0xaab2bb)},
+tamu(g){shell(g,[0xe4e6e9,0xd9dcdf],0xf1efe9,0xb8bfc7);
+ for(let i=0;i<9;i++)bb(g,.12,2.6,.06,i%2?0x8d949c:0x9aa1a9,-1.5+i*.4,.2,-2.46);
+ win(g,-2.47,1.8,1.0,1.4,1.1,1,0xcfd4da);
+ bb(g,2.4,.5,.55,0x3a3f46,.2,FLR,-2.2);B(g,1.7,.95,.06,TVM,.2,1.5,-2.42,1);bb(g,1.8,.04,.06,0x111111,.2,1.0,-2.43);
+ bb(g,3.2,.12,.35,0xcfd4da,.2,2.5,-2.3);bb(g,.3,.4,.2,0xaab2bb,-.9,2.62,-2.3);bb(g,.3,.3,.2,0x8f9aa5,-.4,2.62,-2.3);
  bb(g,3.2,.04,2.2,0xb9b2a4,.2,FLR,.0);
- bb(g,2.8,.45,1.0,0x5b6b7a,.2,FLR,1.0);bb(g,2.8,.6,.3,0x5b6b7a,.2,.45,1.5);bb(g,.3,.35,1.0,0x4a5a68,-1.35,.45,1.0);bb(g,.3,.35,1.0,0x4a5a68,1.75,.45,1.0);
- bb(g,.5,.4,.12,0xe8b923,-.5,.5,1.2);bb(g,.5,.4,.12,0xc23b2e,.9,.5,1.2);
- bb(g,1.3,.12,.75,0x3a2e26,.2,.28,-.35);bb(g,1.3,.04,.75,0x6b5a4a,.2,FLR,-.35);bb(g,.3,.06,.3,0xffffff,.0,.4,-.35);
- bb(g,.4,2.1,1.7,0x6b4a2a,-2.25,FLR,-1.2);const bc=[0xc23b2e,0x3f6fd0,0xe8b923,0x2f9a4a,0xf4f1e6];for(let i=0;i<4;i++)for(let j=0;j<5;j++)bb(g,.05,.3,.22,bc[(i+j)%5],-2.0,.3+i*.5,-1.9+j*.33);
- lampuRuang(g,-1.9,FLR,2.1);bb(g,.04,1.1,.04,0x333333,-1.9,.3,2.1);plant(g,2.1,-1.9,1.2);art(g,-2.46,1.8,-.2,.9,.7,0xb78cff,1)},
+ bb(g,2.8,.45,1.0,0x8e98a3,.2,FLR,1.0);bb(g,2.8,.6,.3,0x8e98a3,.2,.45,1.5);bb(g,.3,.35,1.0,0x7f8995,-1.35,.45,1.0);bb(g,.3,.35,1.0,0x7f8995,1.75,.45,1.0);
+ bb(g,.5,.4,.12,0xdfe3e7,-.5,.5,1.2);bb(g,.5,.4,.12,0xb8c0c8,.9,.5,1.2);
+ bb(g,1.3,.12,.75,0x30343a,.2,.28,-.35);bb(g,1.3,.04,.75,0x555b63,.2,FLR,-.35);bb(g,.3,.06,.3,0xffffff,.0,.4,-.35);
+ bb(g,.4,2.1,1.7,0x4a4f57,-2.25,FLR,-1.2);const bc=[0xc23b2e,0x3f6fd0,0xe8b923,0xcfd4da,0xf4f1e6];for(let i=0;i<4;i++)for(let j=0;j<5;j++)bb(g,.05,.3,.22,bc[(i+j)%5],-2.0,.3+i*.5,-1.9+j*.33);
+ lampuRuang(g,-1.9,FLR,2.1);bb(g,.04,1.1,.04,0x333333,-1.9,.3,2.1);plant(g,2.1,-1.9,1.2);art(g,-2.46,1.8,-.2,.9,.7,0xc2c8ce,1)},
 dapur(g){shell(g,[0xdcdcdc,0xcfd2d6],0xf4f4f4,0xe9eef0,1);
  win(g,-2.47,1.8,.3,1.5,1.1,1,0xffffff);
  bb(g,4.3,.9,.65,0x2f3a45,-.1,FLR,-2.15);bb(g,4.4,.06,.72,0xf4f4f4,-.1,.9,-2.12);bb(g,4.3,.55,.04,0xdfe6ea,-.1,.96,-2.47);
@@ -832,18 +872,18 @@ dapur(g){shell(g,[0xdcdcdc,0xcfd2d6],0xf4f4f4,0xe9eef0,1);
  bb(g,.8,.03,.55,0x1a1a1f,-.9,.96,-2.1);for(const[a,b]of[[-1.05,-2.25],[-.75,-2.25],[-1.05,-1.95],[-.75,-1.95]])bb(g,.14,.02,.14,0x555555,a,.99,b);
  bb(g,1.0,.5,.55,0xc9ced3,-.9,2.0,-2.2);bb(g,.9,.45,.3,0xc9ced3,-.9,2.6,-2.3);bb(g,2.2,.8,.4,0xeceff1,1.0,1.8,-2.3);bb(g,.04,.7,.02,0x444,.3,1.85,-2.09);bb(g,.04,.7,.02,0x444,1.0,1.85,-2.09);
  bb(g,.9,2.1,.8,0xc9ced3,-2.0,FLR,-2.0);bb(g,.04,1.2,.04,0x555,-1.52,.7,-1.7);
- bb(g,2.2,.92,.9,0x8a5a3a,.5,FLR,.6);bb(g,2.3,.06,1.0,0xf4f4f4,.5,.92,.6);
+ bb(g,2.2,.92,.9,0x59616b,.5,FLR,.6);bb(g,2.3,.06,1.0,0xf4f4f4,.5,.92,.6);
  for(const x of[-.2,1.2]){bb(g,.4,.05,.4,0x333,x,.62,1.45);bb(g,.06,.6,.06,0x888,x,FLR,1.45)}
  for(const x of[-.1,1.1]){bb(g,.04,.9,.04,0x222,x,2.2,.6);B(g,.35,.2,.35,ILM,x,2.15,.6,1)}
- plant(g,2.1,-1.7,.9);bb(g,.5,.06,.4,0x2f9a4a,.0,.98,.6)},
+ plant(g,2.1,-1.7,.9);bb(g,.5,.06,.4,0xcfd4da,.0,.98,.6)},
 mandi(g){shell(g,[0xf4f4f4,0x9fb4bd],0xcfe0e6,0xdbe9ee,1);
  win(g,-.6,2.0,-2.47,1.0,.7,0,0xffffff);
  bb(g,1.05,.55,2.3,0xffffff,1.65,FLR,-1.3);bb(g,.85,.04,2.1,0x7fc8ee,1.65,.52,-1.3);B(g,.85,.06,2.1,WTR,1.65,.54,-1.3,1);
  bb(g,.06,.9,.06,0x999,2.3,.55,-2.3);bb(g,.06,.06,.5,0x999,2.3,1.4,-2.1);B(g,.25,.06,.25,0xcccccc,2.3,1.38,-1.85,1);
  bb(g,.5,.4,.7,0xffffff,-1.6,FLR,-2.0);bb(g,.5,.5,.22,0xffffff,-1.6,.4,-2.4);
  bb(g,.6,.85,1.3,0xf4f4f4,-2.15,FLR,.5);bb(g,.5,.05,.7,0xdbe9ee,-2.15,.88,.5);B(g,.04,.2,.04,0x999,-2.4,1.08,.5,1);art(g,-2.46,1.75,.5,1.0,.9,0xbfe6ff,1);
- bb(g,.5,.5,.5,0xe8b923,-.9,FLR,-2.2);bb(g,.04,.8,.5,0xcccccc,-1.0,1.3,-2.4);bb(g,.5,.35,.12,0x3f6fd0,-1.0,1.4,-2.35);bb(g,.5,.35,.12,0xffffff,-.4,1.4,-2.35);
- bb(g,1.2,.03,.7,0x7fb7d8,.2,FLR,.4);plant(g,2.1,1.9,1.0)}};
+ bb(g,.5,.5,.5,0xb8c0c8,-.9,FLR,-2.2);bb(g,.04,.8,.5,0xcccccc,-1.0,1.3,-2.4);bb(g,.5,.35,.12,0x9aa5b1,-1.0,1.4,-2.35);bb(g,.5,.35,.12,0xffffff,-.4,1.4,-2.35);
+ bb(g,1.2,.03,.7,0xcfd8de,.2,FLR,.4);plant(g,2.1,1.9,1.0)}};
 function rumahBuka(b,own){if(HR||HOUSE)return;HOUSE={x:b.x,y:b.y,own:!!own,room:'tidur',v:own&&ME&&ME.v&&S.vil.includes(ME.v)?ME.v:null};if(own&&ME)msAdd('rumah');
  const m=$('hs');m.classList.add('open');
  m.innerHTML=`<div class="box"><div class="hh"><b>🏠 ${own?'Rumah Saya':'Rumah Warga'}</b><button class="x" onclick="rumahTutup()">✕</button></div><div id="hcv"></div><div class="hrg">${Object.entries(ROOMS).map(([k,r])=>`<button id="hr_${k}" onclick="rumahRuang('${k}')"><span>${r.ic}</span>${r.n}</button>`).join('')}</div><small id="hsi"></small><button class="gr" onclick="rumahTutup()">🚪 Keluar rumah</button></div>`;
@@ -868,13 +908,36 @@ function rumahLoop(){if(!HR||!HR.on)return;const dt=Math.min(HR.clk.getDelta(),.
  HR.r.render(HR.s,HR.c);HR.raf=requestAnimationFrame(rumahLoop)}
 function rumahTutup(){const h=HR,hs=HOUSE;if(h){h.on=false;cancelAnimationFrame(h.raf);try{h.r.dispose();if(h.r.forceContextLoss)h.r.forceContextLoss()}catch(_){}h.r.domElement.remove()}HR=null;HOUSE=null;$('hs').classList.remove('open');$('hs').innerHTML='';
  if(hs&&hs.v)keluarRumah(hs.v)}
+/* ---------- kota tetap berjalan saat Pak Bani / pemain offline (simulasi "menyusul") ----------
+   Saat kota dibuka (oleh Pak Bani maupun penonton), game menghitung waktu sejak simpanan terakhir (maks OFF_MAX_JAM jam):
+   pekerja menambah sumber daya & kas, ladang/pasar berproduksi, dan warga membangun bangunan berikutnya selama bahan cukup.
+   Hasilnya sama untuk semua orang (acak dikunci dengan waktu simpanan). Pak Bani menyimpan hasilnya saat membuka game. */
+const OFF_MAX_JAM=24,OFF_MIN=90,OFF_G=30,OFF_P=20,OFF_BUILD=90;   // maks jam • minimal detik • detik per siklus (pengumpul / pekerja bangunan) • detik per bangunan
+let OFF_LAST=0;
+function seeded(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function offBuild(){if(S.bs.some(b=>b.st!='done'))return 0;const T=target();if(!T)return 0;const tp=T[0],src=T[1],d=DEF[tp];if(!aff(d))return 0;const pos=tp=='kastil'?[46,46]:slot(tp);
+ const adv=()=>{if(src=='pri')S.pri.shift();else if(src=='p')S.pi++;else if(src=='l')S.li+=T[2]+1};if(!pos){if(src=='b')S.noBalai=1;adv();return 0}
+ Object.entries(d.c).forEach(([k,v])=>k=='kas'?S.kas-=v:S.res[k]-=v);addB(tp,pos[0],pos[1],true);adv();return 1}
+const fmtDur=s=>{const j=Math.floor(s/3600),m=Math.floor(s%3600/60);return j?j+' jam '+(m?m+' menit':''):m+' menit'};
+function offlineCatch(ts){if(!ts||typeof S=='undefined'||!S)return;let sec=(Date.now()-ts)/1000;if(!(sec>=OFF_MIN))return;if(sec>OFF_MAX_JAM*3600)sec=OFF_MAX_JAM*3600;
+ const rnd=Math.random,r0=Object.assign({},S.res),k0=S.kas;let built=0,lastB=-1e9;Math.random=seeded(ts%2147483647);
+ try{const STEP=30;for(let t=0;t<sec;t+=STEP){if((t/STEP|0)%2==0)balance();const dt=Math.min(STEP,sec-t),dn=new Set(S.bs.filter(b=>b.st=='done').map(b=>b.t));
+  S.vil.forEach(v=>{const J=v.occ&&JOBS[v.occ];if(!J)return;if(J.r){if(!(NODE[J.r]&&NODE[J.r].length))return;const c=dt/OFF_G;S.res[J.r]+=c*CARRY;if(!v.me)S.kas+=c*GAJI}else if(dn.has(J.at)&&!v.me)S.kas+=dt/OFF_P*GAJI});
+  for(let q=0;q<dt;q+=5)produce(Math.min(5,dt-q));
+  if(t-lastB>=OFF_BUILD){const n=offBuild();if(n){built+=n;lastB=t}}}
+ }catch(e){console.error('offline',e)}finally{Math.random=rnd}
+ for(const k in S.res)S.res[k]=Math.floor(S.res[k]);S.kas=Math.floor(S.kas);
+ const gain=Object.keys(S.res).map(k=>[k,S.res[k]-(r0[k]|0)]).filter(x=>x[1]>0).map(x=>(RI[x[0]]||x[0])+' +'+x[1]).join('  '),dk=S.kas-k0;
+ const msg=`🌙 Selama ditinggal ${fmtDur(sec)}: ${gain||'sumber daya tetap'}${dk>0?'  💰 +'+dk:''}${built?'  🏗️ '+built+' bangunan baru':''}`;
+ log(msg,'#9ff59a');if(OFF_LAST!=ts){OFF_LAST=ts;setTimeout(()=>toast(msg),1500)}
+ if(OWNER){try{save()}catch(_){}}}
 function boot(){let on=false;const go=snap=>{if(on)return;on=true;meFix();GH.LOADED=(snap&&snap.ts)||0;
- if(OWNER){if(!loadGame()&&!(snap&&loadData(snap)))init()}else if(!(snap&&loadData(snap)))init();
+ if(OWNER){let lt=0;try{lt=JSON.parse(localStorage.getItem(SAVEK)).ts||0}catch(_){}if(snap&&(snap.ts||0)>lt+60000&&loadData(snap)){LOCALTS=snap.ts;save();toast('☁️ Memakai kota terbaru dari server')}else if(!loadGame()&&!(snap&&loadData(snap)))init()}else if(!(snap&&loadData(snap)))init();
  document.body.classList.toggle('owner',OWNER);document.body.classList.toggle('viewer',!OWNER);if(!OWNER){$('hint').innerHTML='👀 Mode penonton — kota milik Pak Bani<br>Geser = putar • cubit = zoom<br>🪪 Ketuk kartu di kanan atas untuk jadi warga';if(ME)checkMe()}
  updMenu();loop();cloudInit();pubAutoStart()};
  let has=false;if(OWNER){try{has=!!localStorage.getItem(SAVEK)}catch(_){}}
- if(has||typeof fetch!='function'){go(null);return}
- setTimeout(()=>go(null),6000);ambilKota().then(go)}
+ if(typeof fetch!='function'){go(null);return}
+ setTimeout(()=>go(null),has?2500:6000);ambilKota().then(go)}
 boot();
 if(!OWNER){setInterval(viewRefresh,120000);setTimeout(viewRefresh,8000)}
 
