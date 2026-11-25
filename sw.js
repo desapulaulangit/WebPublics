@@ -1,7 +1,7 @@
 /* Service worker: game bisa dibuka offline setelah pertama kali dimuat.
    File game memakai "jaringan dulu" (selalu versi terbaru saat online), cache hanya cadangan offline.
    Kalau mengubah ikon/manifest dan tidak muncul, naikkan VERSI. */
-const VERSI = 'wpl-v3-11';
+const VERSI = 'wpl-v3-12';
 const INTI = ['./', 'index.html', 'style.css', 'config.js', 'game.js', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/maskable-192.png', 'icons/maskable-512.png'];
 const THREE_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
 

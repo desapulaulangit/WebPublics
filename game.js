@@ -831,66 +831,66 @@ cv.addEventListener('pointerup',e=>{const q=TAP;if(!q||q.bad||q.id!=e.pointerId|
 /* ---------- interior rumah (3D isometrik, 4 ruangan) ---------- */
 const ROOMS={tidur:{n:'Kamar tidur',ic:'🛏️',tx:'Kamar tidur dengan ranjang besar dan lemari. Geser untuk memutar sudut pandang.'},tamu:{n:'Ruang tamu',ic:'🛋️',tx:'Ruang tamu dengan sofa, TV, dan rak buku.'},dapur:{n:'Dapur',ic:'🍳',tx:'Dapur modern dengan kompor, kulkas, dan meja makan.'},mandi:{n:'Kamar mandi',ic:'🛁',tx:'Kamar mandi dengan bak, toilet, dan wastafel.'}};
 let HR=null,HOUSE=null;
-const IW=new THREE.MeshLambertMaterial({color:0xbfe6ff,emissive:0xcfe8ff,emissiveIntensity:.35}),ILM=new THREE.MeshLambertMaterial({color:0xfff2c8,emissive:0xffd27a,emissiveIntensity:.9}),TVM=new THREE.MeshLambertMaterial({color:0x1b2a3a,emissive:0x3a6ea5,emissiveIntensity:.55}),WTR=new THREE.MeshLambertMaterial({color:0x7fc8ee,emissive:0x2a7fb0,emissiveIntensity:.25});
+const IW=new THREE.MeshLambertMaterial({color:0xbfe6ff,emissive:0xcfe8ff,emissiveIntensity:.2}),ILM=new THREE.MeshLambertMaterial({color:0xfff2c8,emissive:0xffd27a,emissiveIntensity:.9}),TVM=new THREE.MeshLambertMaterial({color:0x1b2a3a,emissive:0x3a6ea5,emissiveIntensity:.55}),WTR=new THREE.MeshLambertMaterial({color:0x7fc8ee,emissive:0x2a7fb0,emissiveIntensity:.25});
 const FLR=.04,bb=(g,w,h,d,c,x,y0,z)=>B(g,w,h,d,c,x,y0+h/2,z,1);
-function shell(g,floor,wall,acc,check){bb(g,5.4,.3,5.4,0x4a3f36,0,-.3,0);
+function shell(g,floor,wall,acc,check){bb(g,5.4,.3,5.4,0x3a3f48,0,-.3,0);
  for(let i=0;i<5;i++)for(let j=0;j<(check?5:1);j++){if(check)bb(g,1,FLR,1,(i+j)%2?floor[0]:floor[1],-2+i,0,-2+j);else bb(g,1,FLR,5,i%2?floor[0]:floor[1],-2+i,0,0)}
- bb(g,5.4,3,.2,acc||wall,0,0,-2.6);bb(g,.2,3,5.4,wall,-2.6,0,0);bb(g,5,.14,.05,0xffffff,0,FLR,-2.47);bb(g,.05,.14,5,0xffffff,-2.47,FLR,0);
- bb(g,5.4,.1,.3,0xeeeeee,0,3,-2.6);bb(g,.3,.1,5.4,0xeeeeee,-2.6,3,0)}
-function win(g,x,y,z,w,h,rot,cur){const m=new THREE.Group();B(m,w+.2,h+.2,.06,0xf4f4f4,0,0,0,1);B(m,w,h,.08,IW,0,0,0,1);B(m,.05,h,.1,0xf4f4f4,0,0,0,1);B(m,w,.05,.1,0xf4f4f4,0,0,0,1);
+ bb(g,5.4,3,.2,acc||wall,0,0,-2.6);bb(g,.2,3,5.4,wall,-2.6,0,0);bb(g,5,.14,.05,0xd6dade,0,FLR,-2.47);bb(g,.05,.14,5,0xd6dade,-2.47,FLR,0);
+ bb(g,5.4,.1,.3,0xcfd3d8,0,3,-2.6);bb(g,.3,.1,5.4,0xcfd3d8,-2.6,3,0)}
+function win(g,x,y,z,w,h,rot,cur){const m=new THREE.Group();B(m,w+.2,h+.2,.06,0xdadde1,0,0,0,1);B(m,w,h,.08,IW,0,0,0,1);B(m,.05,h,.1,0xdadde1,0,0,0,1);B(m,w,.05,.1,0xdadde1,0,0,0,1);
  if(cur){B(m,.22,h+.1,.12,cur,-w/2-.05,0,.05,1);B(m,.22,h+.1,.12,cur,w/2+.05,0,.05,1)}
  m.position.set(x,y,z);if(rot)m.rotation.y=Math.PI/2;g.add(m)}
 function plant(g,x,z,s){bb(g,.34*s,.3*s,.34*s,0xe9e4da,x,FLR,z);const l=[0x2f8f3a,0x3aa84a,0x4cbf4a];for(let i=0;i<5;i++){const m=B(g,.12*s,(.45+(i%2)*.15)*s,.12*s,l[i%3],x+(i-2)*.07*s,(.55+FLR)*s+.1,z+((i*37)%5-2)*.04*s,1);m.rotation.z=(i-2)*.22}}
 function lampuRuang(g,x,y0,z){bb(g,.1,.3,.1,0x333333,x,y0,z);B(g,.3,.24,.3,ILM,x,y0+.42,z,1)}
 function art(g,x,y,z,w,h,c,rot){const m=B(g,w,h,.04,c,x,y,z,1);if(rot)m.rotation.y=Math.PI/2;B(g,w+.08,h+.08,.03,0x222222,x,y,z-.005,1).rotation.y=rot?Math.PI/2:0}
 const ROOMB={
-tidur(g){shell(g,[0xdfe2e6,0xd3d7dc],0xe9e6df,0xc9d0d6);
- win(g,-2.47,1.8,-1.2,1.4,1.1,1,0xf2f2f2);
- bb(g,2.1,.35,2.4,0x3b4048,.3,FLR,-1.25);bb(g,1.95,.26,2.25,0xffffff,.3,.39,-1.2);bb(g,2.3,1.2,.14,0x2f343b,.3,FLR,-2.42);
- bb(g,.75,.16,.4,0xf4f4f4,-.1,.65,-2.0);bb(g,.75,.16,.4,0xf4f4f4,.7,.65,-2.0);bb(g,1.95,.08,1.3,0x9aa5b1,.3,.65,-.75);bb(g,1.95,.05,.3,0xcfd4da,.3,.73,-.2);
- bb(g,.55,.5,.5,0xcfd4da,-1.25,FLR,-2.2);bb(g,.55,.5,.5,0xcfd4da,1.85,FLR,-2.2);lampuRuang(g,-1.25,.54,-2.2);lampuRuang(g,1.85,.54,-2.2);
- bb(g,.65,2.5,1.7,0xf0ece4,-2.15,FLR,.7);bb(g,.04,2.2,.03,0x999999,-1.82,.2,.2);bb(g,.04,2.2,.03,0x999999,-1.82,.2,1.2);
- bb(g,2.8,.03,1.9,0xe9ecef,.3,FLR,.2);
- bb(g,1.5,.07,.65,0xcfd4da,-1.7,.75,2.1);bb(g,.07,.75,.65,0xcfd4da,-2.4,FLR,2.1);bb(g,.07,.75,.65,0xcfd4da,-1.0,FLR,2.1);bb(g,.45,.05,.4,0x222222,-1.7,.82,2.1);bb(g,.4,.32,.06,0x1a1a1f,-1.7,.87,2.0);
+tidur(g){shell(g,[0x7f8896,0x757e8c],0xd6d2ca,0x7f8a99);
+ win(g,-2.47,1.8,-1.2,1.4,1.1,1,0xd2d6db);
+ bb(g,2.1,.35,2.4,0x3b4048,.3,FLR,-1.25);bb(g,1.95,.26,2.25,0xd6dade,.3,.39,-1.2);bb(g,2.3,1.2,.14,0x2f343b,.3,FLR,-2.42);
+ bb(g,.75,.16,.4,0xd6dade,-.1,.65,-2.0);bb(g,.75,.16,.4,0xd6dade,.7,.65,-2.0);bb(g,1.95,.08,1.3,0x6f7f95,.3,.65,-.75);bb(g,1.95,.05,.3,0xb4bac3,.3,.73,-.2);
+ bb(g,.55,.5,.5,0xb4bac3,-1.25,FLR,-2.2);bb(g,.55,.5,.5,0xb4bac3,1.85,FLR,-2.2);lampuRuang(g,-1.25,.54,-2.2);lampuRuang(g,1.85,.54,-2.2);
+ bb(g,.65,2.5,1.7,0xcfcac2,-2.15,FLR,.7);bb(g,.04,2.2,.03,0x999999,-1.82,.2,.2);bb(g,.04,2.2,.03,0x999999,-1.82,.2,1.2);
+ bb(g,2.8,.03,1.9,0xc9ced6,.3,FLR,.2);
+ bb(g,1.5,.07,.65,0xb4bac3,-1.7,.75,2.1);bb(g,.07,.75,.65,0xb4bac3,-2.4,FLR,2.1);bb(g,.07,.75,.65,0xb4bac3,-1.0,FLR,2.1);bb(g,.45,.05,.4,0x222222,-1.7,.82,2.1);bb(g,.4,.32,.06,0x1a1a1f,-1.7,.87,2.0);
  bb(g,.5,.08,.5,0x333333,-1.2,.45,2.0);bb(g,.5,.45,.08,0x333333,-1.2,.45,2.28);
  plant(g,2.1,2.0,1.1);art(g,.3,1.9,-2.44,.9,.6,0xb8c0c8);art(g,1.3,1.8,-2.44,.5,.5,0xaab2bb)},
-tamu(g){shell(g,[0xe4e6e9,0xd9dcdf],0xf1efe9,0xb8bfc7);
- for(let i=0;i<9;i++)bb(g,.12,2.6,.06,i%2?0x8d949c:0x9aa1a9,-1.5+i*.4,.2,-2.46);
- win(g,-2.47,1.8,1.0,1.4,1.1,1,0xcfd4da);
+tamu(g){shell(g,[0x838b98,0x79818e],0xd9d6cf,0x939aa6);
+ for(let i=0;i<9;i++)bb(g,.12,2.6,.06,i%2?0x6d7480:0x7a818c,-1.5+i*.4,.2,-2.46);
+ win(g,-2.47,1.8,1.0,1.4,1.1,1,0xb4bac3);
  bb(g,2.4,.5,.55,0x3a3f46,.2,FLR,-2.2);B(g,1.7,.95,.06,TVM,.2,1.5,-2.42,1);bb(g,1.8,.04,.06,0x111111,.2,1.0,-2.43);
- bb(g,3.2,.12,.35,0xcfd4da,.2,2.5,-2.3);bb(g,.3,.4,.2,0xaab2bb,-.9,2.62,-2.3);bb(g,.3,.3,.2,0x8f9aa5,-.4,2.62,-2.3);
+ bb(g,3.2,.12,.35,0xb4bac3,.2,2.5,-2.3);bb(g,.3,.4,.2,0xaab2bb,-.9,2.62,-2.3);bb(g,.3,.3,.2,0x7d8896,-.4,2.62,-2.3);
  bb(g,3.2,.04,2.2,0xb9b2a4,.2,FLR,.0);
- bb(g,2.8,.45,1.0,0x8e98a3,.2,FLR,1.0);bb(g,2.8,.6,.3,0x8e98a3,.2,.45,1.5);bb(g,.3,.35,1.0,0x7f8995,-1.35,.45,1.0);bb(g,.3,.35,1.0,0x7f8995,1.75,.45,1.0);
- bb(g,.5,.4,.12,0xdfe3e7,-.5,.5,1.2);bb(g,.5,.4,.12,0xb8c0c8,.9,.5,1.2);
- bb(g,1.3,.12,.75,0x30343a,.2,.28,-.35);bb(g,1.3,.04,.75,0x555b63,.2,FLR,-.35);bb(g,.3,.06,.3,0xffffff,.0,.4,-.35);
- bb(g,.4,2.1,1.7,0x4a4f57,-2.25,FLR,-1.2);const bc=[0xc23b2e,0x3f6fd0,0xe8b923,0xcfd4da,0xf4f1e6];for(let i=0;i<4;i++)for(let j=0;j<5;j++)bb(g,.05,.3,.22,bc[(i+j)%5],-2.0,.3+i*.5,-1.9+j*.33);
- lampuRuang(g,-1.9,FLR,2.1);bb(g,.04,1.1,.04,0x333333,-1.9,.3,2.1);plant(g,2.1,-1.9,1.2);art(g,-2.46,1.8,-.2,.9,.7,0xc2c8ce,1)},
-dapur(g){shell(g,[0xdcdcdc,0xcfd2d6],0xf4f4f4,0xe9eef0,1);
- win(g,-2.47,1.8,.3,1.5,1.1,1,0xffffff);
- bb(g,4.3,.9,.65,0x2f3a45,-.1,FLR,-2.15);bb(g,4.4,.06,.72,0xf4f4f4,-.1,.9,-2.12);bb(g,4.3,.55,.04,0xdfe6ea,-.1,.96,-2.47);
+ bb(g,2.8,.45,1.0,0x5d6b80,.2,FLR,1.0);bb(g,2.8,.6,.3,0x5d6b80,.2,.45,1.5);bb(g,.3,.35,1.0,0x4f5c70,-1.35,.45,1.0);bb(g,.3,.35,1.0,0x4f5c70,1.75,.45,1.0);
+ bb(g,.5,.4,.12,0xc9ced6,-.5,.5,1.2);bb(g,.5,.4,.12,0xb8c0c8,.9,.5,1.2);
+ bb(g,1.3,.12,.75,0x30343a,.2,.28,-.35);bb(g,1.3,.04,.75,0x555b63,.2,FLR,-.35);bb(g,.3,.06,.3,0xd6dade,.0,.4,-.35);
+ bb(g,.4,2.1,1.7,0x4a4f57,-2.25,FLR,-1.2);const bc=[0x8d98a6,0x6f7f95,0xaab2bb,0x5f6b7c,0xc2c8d0];for(let i=0;i<4;i++)for(let j=0;j<5;j++)bb(g,.05,.3,.22,bc[(i+j)%5],-2.0,.3+i*.5,-1.9+j*.33);
+ lampuRuang(g,-1.9,FLR,2.1);bb(g,.04,1.1,.04,0x333333,-1.9,.3,2.1);plant(g,2.1,-1.9,1.2);art(g,-2.46,1.8,-.2,.9,.7,0x9aa3ae,1)},
+dapur(g){shell(g,[0x9aa1ab,0x8b929d],0xdcd9d2,0xc8d0d6,1);
+ win(g,-2.47,1.8,.3,1.5,1.1,1,0xd6dade);
+ bb(g,4.3,.9,.65,0x2f3a45,-.1,FLR,-2.15);bb(g,4.4,.06,.72,0xd6dade,-.1,.9,-2.12);bb(g,4.3,.55,.04,0xc9d1d7,-.1,.96,-2.47);
  bb(g,.7,.04,.5,0xbfc4c8,.9,.96,-2.1);B(g,.04,.3,.04,0x999999,.9,1.2,-2.35,1);bb(g,.04,.04,.25,0x999999,.9,1.46,-2.28);
  bb(g,.8,.03,.55,0x1a1a1f,-.9,.96,-2.1);for(const[a,b]of[[-1.05,-2.25],[-.75,-2.25],[-1.05,-1.95],[-.75,-1.95]])bb(g,.14,.02,.14,0x555555,a,.99,b);
- bb(g,1.0,.5,.55,0xc9ced3,-.9,2.0,-2.2);bb(g,.9,.45,.3,0xc9ced3,-.9,2.6,-2.3);bb(g,2.2,.8,.4,0xeceff1,1.0,1.8,-2.3);bb(g,.04,.7,.02,0x444,.3,1.85,-2.09);bb(g,.04,.7,.02,0x444,1.0,1.85,-2.09);
+ bb(g,1.0,.5,.55,0xc9ced3,-.9,2.0,-2.2);bb(g,.9,.45,.3,0xc9ced3,-.9,2.6,-2.3);bb(g,2.2,.8,.4,0xc4cad1,1.0,1.8,-2.3);bb(g,.04,.7,.02,0x444,.3,1.85,-2.09);bb(g,.04,.7,.02,0x444,1.0,1.85,-2.09);
  bb(g,.9,2.1,.8,0xc9ced3,-2.0,FLR,-2.0);bb(g,.04,1.2,.04,0x555,-1.52,.7,-1.7);
- bb(g,2.2,.92,.9,0x59616b,.5,FLR,.6);bb(g,2.3,.06,1.0,0xf4f4f4,.5,.92,.6);
+ bb(g,2.2,.92,.9,0x59616b,.5,FLR,.6);bb(g,2.3,.06,1.0,0xd6dade,.5,.92,.6);
  for(const x of[-.2,1.2]){bb(g,.4,.05,.4,0x333,x,.62,1.45);bb(g,.06,.6,.06,0x888,x,FLR,1.45)}
  for(const x of[-.1,1.1]){bb(g,.04,.9,.04,0x222,x,2.2,.6);B(g,.35,.2,.35,ILM,x,2.15,.6,1)}
- plant(g,2.1,-1.7,.9);bb(g,.5,.06,.4,0xcfd4da,.0,.98,.6)},
-mandi(g){shell(g,[0xf4f4f4,0x9fb4bd],0xcfe0e6,0xdbe9ee,1);
- win(g,-.6,2.0,-2.47,1.0,.7,0,0xffffff);
- bb(g,1.05,.55,2.3,0xffffff,1.65,FLR,-1.3);bb(g,.85,.04,2.1,0x7fc8ee,1.65,.52,-1.3);B(g,.85,.06,2.1,WTR,1.65,.54,-1.3,1);
+ plant(g,2.1,-1.7,.9);bb(g,.5,.06,.4,0xb4bac3,.0,.98,.6)},
+mandi(g){shell(g,[0xa9b5bc,0x7f96a2],0xbccfd8,0xa9c0cb,1);
+ win(g,-.6,2.0,-2.47,1.0,.7,0,0xd6dade);
+ bb(g,1.05,.55,2.3,0xd6dade,1.65,FLR,-1.3);bb(g,.85,.04,2.1,0x7fc8ee,1.65,.52,-1.3);B(g,.85,.06,2.1,WTR,1.65,.54,-1.3,1);
  bb(g,.06,.9,.06,0x999,2.3,.55,-2.3);bb(g,.06,.06,.5,0x999,2.3,1.4,-2.1);B(g,.25,.06,.25,0xcccccc,2.3,1.38,-1.85,1);
- bb(g,.5,.4,.7,0xffffff,-1.6,FLR,-2.0);bb(g,.5,.5,.22,0xffffff,-1.6,.4,-2.4);
- bb(g,.6,.85,1.3,0xf4f4f4,-2.15,FLR,.5);bb(g,.5,.05,.7,0xdbe9ee,-2.15,.88,.5);B(g,.04,.2,.04,0x999,-2.4,1.08,.5,1);art(g,-2.46,1.75,.5,1.0,.9,0xbfe6ff,1);
- bb(g,.5,.5,.5,0xb8c0c8,-.9,FLR,-2.2);bb(g,.04,.8,.5,0xcccccc,-1.0,1.3,-2.4);bb(g,.5,.35,.12,0x9aa5b1,-1.0,1.4,-2.35);bb(g,.5,.35,.12,0xffffff,-.4,1.4,-2.35);
- bb(g,1.2,.03,.7,0xcfd8de,.2,FLR,.4);plant(g,2.1,1.9,1.0)}};
+ bb(g,.5,.4,.7,0xd6dade,-1.6,FLR,-2.0);bb(g,.5,.5,.22,0xd6dade,-1.6,.4,-2.4);
+ bb(g,.6,.85,1.3,0xd6dade,-2.15,FLR,.5);bb(g,.5,.05,.7,0xb9ccd5,-2.15,.88,.5);B(g,.04,.2,.04,0x999,-2.4,1.08,.5,1);art(g,-2.46,1.75,.5,1.0,.9,0xbfe6ff,1);
+ bb(g,.5,.5,.5,0xb8c0c8,-.9,FLR,-2.2);bb(g,.04,.8,.5,0xcccccc,-1.0,1.3,-2.4);bb(g,.5,.35,.12,0x6f7f95,-1.0,1.4,-2.35);bb(g,.5,.35,.12,0xd6dade,-.4,1.4,-2.35);
+ bb(g,1.2,.03,.7,0xb5c4cc,.2,FLR,.4);plant(g,2.1,1.9,1.0)}};
 function rumahBuka(b,own){if(HR||HOUSE)return;HOUSE={x:b.x,y:b.y,own:!!own,room:'tidur',v:own&&ME&&ME.v&&S.vil.includes(ME.v)?ME.v:null};if(own&&ME)msAdd('rumah');
  const m=$('hs');m.classList.add('open');
  m.innerHTML=`<div class="box"><div class="hh"><b>🏠 ${own?'Rumah Saya':'Rumah Warga'}</b><button class="x" onclick="rumahTutup()">✕</button></div><div id="hcv"></div><div class="hrg">${Object.entries(ROOMS).map(([k,r])=>`<button id="hr_${k}" onclick="rumahRuang('${k}')"><span>${r.ic}</span>${r.n}</button>`).join('')}</div><small id="hsi"></small><button class="gr" onclick="rumahTutup()">🚪 Keluar rumah</button></div>`;
  setTimeout(rumahInit,40)}
 function rumahInit(){const el=$('hcv');if(!el||!HOUSE)return;let r;try{r=new THREE.WebGLRenderer({antialias:true,alpha:true})}catch(e){el.innerHTML='<div class="hfail">⚠️ Perangkat ini tidak bisa menampilkan interior 3D</div>';return}
  r.setPixelRatio(Math.min(devicePixelRatio,2));el.appendChild(r.domElement);const w=el.clientWidth||320,h=el.clientHeight||220;r.setSize(w,h,false);
- const s=new THREE.Scene();s.add(new THREE.HemisphereLight(0xffffff,0x9a9fc8,.95));const d=new THREE.DirectionalLight(0xfff0d8,.7);d.position.set(6,10,5);s.add(d);const pl=new THREE.PointLight(0xffe2b0,.5,16);pl.position.set(0,3.4,0);s.add(pl);
+ const s=new THREE.Scene();s.add(new THREE.HemisphereLight(0xffffff,0x9a9fc8,.62));const d=new THREE.DirectionalLight(0xfff0d8,.5);d.position.set(6,10,5);s.add(d);const pl=new THREE.PointLight(0xffe2b0,.18,16);pl.position.set(0,3.4,0);s.add(pl);
  HR={r,s,c:new THREE.PerspectiveCamera(30,w/h,.1,100),el,g:null,ch:null,clk:new THREE.Clock(),th:Math.PI/4,tt:Math.PI/4,on:true,raf:0,t0:0,dn:null};
  const cvs=r.domElement;cvs.style.touchAction='none';
  cvs.addEventListener('pointerdown',e=>{HR.dn={x:e.clientX,t:HR.tt};cvs.setPointerCapture(e.pointerId)});
